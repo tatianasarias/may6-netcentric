@@ -11,11 +11,11 @@
   <h2>Add a Car</h2>
 
   <form id="carForm" method="POST" action="/api/cars">
-    <input type="text" id="brand" placeholder="Brand" name="brand"required>
+    <input type="text" id="brand" placeholder="Brand" name="brand" required>
     <input type="text" id="make" placeholder="Make" name="make" required>
     <input type="number" id="year" placeholder="Year" name="year" required>
     <input type="text" id="color" placeholder="Color" name="color" required>
-    <button type="submit">Add Car</button>
+    <button type="submit" id="submitBtn">Add Car</button>
   </form>
 
   <h2>Cars</h2>
@@ -35,6 +35,9 @@
   <script>
     const form = document.getElementById("carForm");
     const tableBody = document.getElementById("carsTableBody");
+    const submitBtn = document.getElementById("submitBtn");
+
+    let updateId = null;
 
     async function loadCars() {
       const response = await fetch("/api/cars");
@@ -52,7 +55,7 @@
           <td>${car.color}</td>
           <td>
             <button onclick="deleteCar(${car.id})">delete</button>
-            <button onclick="updateCar(${car.id})">update</button>
+            <button onclick="editCar(${car.id}, '${car.brand}', '${car.make}', ${car.year}, '${car.color}')">update</button>
           </td>
         `;
 
@@ -68,39 +71,53 @@
       loadCars();
     }
 
-    async function updateCar(id) {
-  const brand = prompt("New brand:");
-  const make = prompt("New make:");
-  const year = prompt("New year:");
-  const color = prompt("New color:");
+    function editCar(id, brand, make, year, color) {
+      updateId = id;
 
-  if (!brand || !make || !year || !color) {
-    return;
-  }
+      document.getElementById("brand").value = brand;
+      document.getElementById("make").value = make;
+      document.getElementById("year").value = year;
+      document.getElementById("color").value = color;
 
-  document.getElementById("brand").value = brand;
-  document.getElementById("make").value = make;
-  document.getElementById("year").value = year;
-  document.getElementById("color").value = color;
+      submitBtn.textContent = "Update Car";
+    }
 
-  const updatedCar = {
-    brand,
-    make,
-    year,
-    color
-  };
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
 
-  await fetch(`/api/cars/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(updatedCar)
-  });
+      const car = {
+        brand: document.getElementById("brand").value,
+        make: document.getElementById("make").value,
+        year: document.getElementById("year").value,
+        color: document.getElementById("color").value
+      };
 
-  form.reset();
-  loadCars();
-}
+      if (updateId === null) {
+        await fetch("/api/cars", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(car)
+        });
+      } else {
+        await fetch(`/api/cars/${updateId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(car)
+        });
+
+        updateId = null;
+        submitBtn.textContent = "Add Car";
+      }
+
+      form.reset();
+      loadCars();
+    });
+
+    loadCars();
   </script>
 </body>
 </html>

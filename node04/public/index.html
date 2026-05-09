@@ -22,11 +22,11 @@
   <table>
     <thead>
       <tr>
-        <th>ID</th>
         <th>Brand</th>
-        <th>Make</th>
         <th>Year</th>
+        <th>Make</th>
         <th>Color</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody id="carsTableBody"></tbody>
@@ -46,15 +46,50 @@
         const row = document.createElement("tr");
 
         row.innerHTML = `
-          <td>${car.id}</td>
           <td>${car.brand}</td>
-          <td>${car.make}</td>
           <td>${car.year}</td>
+          <td>${car.make}</td>
           <td>${car.color}</td>
+          <td>
+            <button onclick="deleteCar(${car.id})">delete</button>
+            <button onclick="updateCar(${car.id})">update</button>
+          </td>
         `;
 
         tableBody.appendChild(row);
       });
+    }
+
+    async function deleteCar(id) {
+      await fetch(`/api/cars/${id}`, {
+        method: "DELETE"
+      });
+
+      loadCars();
+    }
+
+    async function updateCar(id) {
+      const brand = prompt("New brand:");
+      const make = prompt("New make:");
+      const year = prompt("New year:");
+      const color = prompt("New color:");
+
+      const updatedCar = {
+        brand,
+        make,
+        year,
+        color
+      };
+
+      await fetch(`/api/cars/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedCar)
+      });
+
+      loadCars();
     }
 
     form.addEventListener("submit", async event => {
